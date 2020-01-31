@@ -1,0 +1,17 @@
+id: vipser
+name: vips command line driver
+description: Shared image scaling service
+type: application
+product: image-delivery
+lifecycle: preview
+links: []
+availability: true
+confidentiality: public
+integrity: true
+exposure:
+  - consumer-facing-read
+  - platform
+vertical: s24
+owners:
+  - S24-PlatformEngineering-SRE-TREN-ds@scout24.com
+platform: aws
