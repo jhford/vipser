@@ -16,4 +16,6 @@ RESULT determine_buffer_type(size_t, char *buf, format_t *fmt);
 // Map a format name to the corresponding format_t
 format_t format_from_name(const char* name);
 
+char* get_format_name(format_t fmt);
+
 #endif //VIPSER_SNIFFING_H

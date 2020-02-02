@@ -2,8 +2,16 @@
 #define VIPSER_TYPES_H
 
 typedef int RESULT;
+typedef int bool_t;
 #define OK 1
 #define FAIL 0
+#define V_TRUE 1
+#define V_FALSE 0
+
+// Resizing strategies
+#define RESIZE 0u
+#define STRETCH 1u
+#define EXPAND  2u
 
 // Types
 #define UNK  0

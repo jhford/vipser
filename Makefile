@@ -39,38 +39,27 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake
+CMAKE_COMMAND = /home/jhford/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/193.6015.37/bin/cmake/linux/bin/cmake
 
 # The command to remove a file.
-RM = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E remove -f
+RM = /home/jhford/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/193.6015.37/bin/cmake/linux/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/jford/scout24/vipser
+CMAKE_SOURCE_DIR = /home/jhford/projects/vipser
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/jford/scout24/vipser
+CMAKE_BINARY_DIR = /home/jhford/projects/vipser
 
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	/home/jhford/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/193.6015.37/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -78,11 +67,22 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/home/jhford/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/193.6015.37/bin/cmake/linux/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jford/scout24/vipser/CMakeFiles /Users/jford/scout24/vipser/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jhford/projects/vipser/CMakeFiles /home/jhford/projects/vipser/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jford/scout24/vipser/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jhford/projects/vipser/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -136,6 +136,49 @@ vipser/fast:
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/build
 .PHONY : vipser/fast
 
+#=============================================================================
+# Target rules for targets named vipser-efence
+
+# Build rule for target.
+vipser-efence: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 vipser-efence
+.PHONY : vipser-efence
+
+# fast build rule for target.
+vipser-efence/fast:
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/build
+.PHONY : vipser-efence/fast
+
+src/commands.o: src/commands.c.o
+
+.PHONY : src/commands.o
+
+# target to build an object file
+src/commands.c.o:
+	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/commands.c.o
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/commands.c.o
+.PHONY : src/commands.c.o
+
+src/commands.i: src/commands.c.i
+
+.PHONY : src/commands.i
+
+# target to preprocess a source file
+src/commands.c.i:
+	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/commands.c.i
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/commands.c.i
+.PHONY : src/commands.c.i
+
+src/commands.s: src/commands.c.s
+
+.PHONY : src/commands.s
+
+# target to generate assembly for a file
+src/commands.c.s:
+	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/commands.c.s
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/commands.c.s
+.PHONY : src/commands.c.s
+
 src/io.o: src/io.c.o
 
 .PHONY : src/io.o
@@ -144,6 +187,7 @@ src/io.o: src/io.c.o
 src/io.c.o:
 	$(MAKE) -f CMakeFiles/sniffer.dir/build.make CMakeFiles/sniffer.dir/src/io.c.o
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/io.c.o
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/io.c.o
 .PHONY : src/io.c.o
 
 src/io.i: src/io.c.i
@@ -154,6 +198,7 @@ src/io.i: src/io.c.i
 src/io.c.i:
 	$(MAKE) -f CMakeFiles/sniffer.dir/build.make CMakeFiles/sniffer.dir/src/io.c.i
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/io.c.i
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/io.c.i
 .PHONY : src/io.c.i
 
 src/io.s: src/io.c.s
@@ -164,6 +209,7 @@ src/io.s: src/io.c.s
 src/io.c.s:
 	$(MAKE) -f CMakeFiles/sniffer.dir/build.make CMakeFiles/sniffer.dir/src/io.c.s
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/io.c.s
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/io.c.s
 .PHONY : src/io.c.s
 
 src/sniffer.o: src/sniffer.c.o
@@ -201,6 +247,7 @@ src/sniffing.o: src/sniffing.c.o
 src/sniffing.c.o:
 	$(MAKE) -f CMakeFiles/sniffer.dir/build.make CMakeFiles/sniffer.dir/src/sniffing.c.o
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/sniffing.c.o
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/sniffing.c.o
 .PHONY : src/sniffing.c.o
 
 src/sniffing.i: src/sniffing.c.i
@@ -211,6 +258,7 @@ src/sniffing.i: src/sniffing.c.i
 src/sniffing.c.i:
 	$(MAKE) -f CMakeFiles/sniffer.dir/build.make CMakeFiles/sniffer.dir/src/sniffing.c.i
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/sniffing.c.i
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/sniffing.c.i
 .PHONY : src/sniffing.c.i
 
 src/sniffing.s: src/sniffing.c.s
@@ -221,6 +269,7 @@ src/sniffing.s: src/sniffing.c.s
 src/sniffing.c.s:
 	$(MAKE) -f CMakeFiles/sniffer.dir/build.make CMakeFiles/sniffer.dir/src/sniffing.c.s
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/sniffing.c.s
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/sniffing.c.s
 .PHONY : src/sniffing.c.s
 
 src/vips_glue.o: src/vips_glue.c.o
@@ -230,6 +279,7 @@ src/vips_glue.o: src/vips_glue.c.o
 # target to build an object file
 src/vips_glue.c.o:
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/vips_glue.c.o
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/vips_glue.c.o
 .PHONY : src/vips_glue.c.o
 
 src/vips_glue.i: src/vips_glue.c.i
@@ -239,6 +289,7 @@ src/vips_glue.i: src/vips_glue.c.i
 # target to preprocess a source file
 src/vips_glue.c.i:
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/vips_glue.c.i
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/vips_glue.c.i
 .PHONY : src/vips_glue.c.i
 
 src/vips_glue.s: src/vips_glue.c.s
@@ -248,6 +299,7 @@ src/vips_glue.s: src/vips_glue.c.s
 # target to generate assembly for a file
 src/vips_glue.c.s:
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/vips_glue.c.s
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/vips_glue.c.s
 .PHONY : src/vips_glue.c.s
 
 src/vipser.o: src/vipser.c.o
@@ -257,6 +309,7 @@ src/vipser.o: src/vipser.c.o
 # target to build an object file
 src/vipser.c.o:
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/vipser.c.o
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/vipser.c.o
 .PHONY : src/vipser.c.o
 
 src/vipser.i: src/vipser.c.i
@@ -266,6 +319,7 @@ src/vipser.i: src/vipser.c.i
 # target to preprocess a source file
 src/vipser.c.i:
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/vipser.c.i
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/vipser.c.i
 .PHONY : src/vipser.c.i
 
 src/vipser.s: src/vipser.c.s
@@ -275,6 +329,7 @@ src/vipser.s: src/vipser.c.s
 # target to generate assembly for a file
 src/vipser.c.s:
 	$(MAKE) -f CMakeFiles/vipser.dir/build.make CMakeFiles/vipser.dir/src/vipser.c.s
+	$(MAKE) -f CMakeFiles/vipser-efence.dir/build.make CMakeFiles/vipser-efence.dir/src/vipser.c.s
 .PHONY : src/vipser.c.s
 
 # Help Target
@@ -283,10 +338,14 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... rebuild_cache"
 	@echo "... sniffer"
 	@echo "... vipser"
+	@echo "... vipser-efence"
+	@echo "... src/commands.o"
+	@echo "... src/commands.i"
+	@echo "... src/commands.s"
 	@echo "... src/io.o"
 	@echo "... src/io.i"
 	@echo "... src/io.s"

@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "types.h"
+#include "io.h"
 
 // The libmagic cookie to be used by all calls.  This is
 // set by magic_init()
@@ -72,7 +73,7 @@ RESULT magic_init() {
     cookie = magic_open(MAGIC_MIME_TYPE);
 
     if (0 != magic_load(cookie, NULL)) {
-        fprintf(stdout, "magic: %s", magic_error(cookie));
+        v_log(ERROR, "magic: %s", magic_error(cookie));
         return FAIL;
     }
 
@@ -84,7 +85,7 @@ RESULT determine_descriptor_type(int fd, char **name) {
     const char *type = magic_descriptor(cookie, fd);
 
     if (type == NULL) {
-        fprintf(stdout, "magic: %s", magic_error(cookie));
+        v_log(ERROR, "magic: %s", magic_error(cookie));
         return FAIL;
     }
 

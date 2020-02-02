@@ -4,95 +4,82 @@
 
 #include "vips_glue.h"
 #include "sniffing.h"
-
-RESULT parse_int(char *val, int *out) {
-    errno = 0;
-
-    long long_v = strtol(val, NULL, 0);
-
-    if (errno != 0) {
-        perror(val);
-        return FAIL;
-    }
-
-    if (long_v > INT_MAX) {
-        fprintf(stderr, "parse_int: %s is larger than allowed max of %d\n", val, INT_MAX);
-        return FAIL;
-    }
-
-    *out = (int) long_v;
-
-    return OK;
-}
-
-RESULT parse_dbl(char *val, double *out) {
-    errno = 0;
-
-    *out = strtod(val, NULL);
-
-    if (errno != 0) {
-        perror(val);
-        *out = 0;
-        return FAIL;
-    }
-
-    return OK;
-}
+#include "io.h"
 
 RESULT rotate_image(VipsImage *in, VipsImage **out, int deg) {
+    v_log(INFO, "rotate %3d degree", deg);
     VipsAngle angle;
     switch (deg) {
         case 0:
         case 360:
-            fprintf(stderr, "skipping ineffective rotation\n");
             return OK;
         case 90:
             angle = VIPS_ANGLE_D90;
-            fprintf(stderr, "rotating 90deg\n");
             break;
         case 180:
             angle = VIPS_ANGLE_D180;
-            fprintf(stderr, "rotating 180deg\n");
             break;
         case 270:
             angle = VIPS_ANGLE_D270;
-            fprintf(stderr, "rotating 270deg\n");
             break;
         default:
             return FAIL;
     }
-    if (0 == vips_rot(in, out, angle, NULL)) {
-        return OK;
+
+    if (vips_rot(in, out, angle, NULL)) {
+        v_vips_err("rotating %d", deg);
+        return FAIL;
     }
-    return FAIL;
+
+    return OK;
 }
 
 RESULT autorot_image(VipsImage *in, VipsImage **out) {
-    fprintf(stderr, "autorotate\n");
-    if (0 == vips_autorot(in, out, NULL)) {
-        return OK;
+    v_log(INFO, "autorotate");
+    if (vips_autorot(in, out, NULL)) {
+        v_vips_err("autorotating");
+        return FAIL;
     }
-    return FAIL;
+    return OK;
 }
 
 RESULT extract_image(VipsImage *in, VipsImage **out, int left, int top, int width, int height) {
-    fprintf(stderr, "extract %d %d %d %d\n", left, top, width, height);
-    if (0 == vips_extract_area(in, out, left, top, width, height, NULL)) {
-        return OK;
+    v_log(INFO, "extracting %d %d %d %d\n", left, top, width, height);
+
+    if (left < 0 || top < 0) {
+        v_log(ERROR, "x,y (%d,%d) is less than zero", left, top);
+        return FAIL;
     }
-    return FAIL;
+
+    int img_height = vips_image_get_height(in);
+    int img_width = vips_image_get_width(in);
+
+    // TODO: Double check this is correct
+    if (img_height < height + top || img_width < width + left) {
+        v_log(ERROR, "w,h (%d,%d) is larger than input image size (%d,%d)", width, height, img_width, img_height);
+        return FAIL;
+    }
+
+    if (vips_extract_area(in, out, left, top, width, height, NULL)) {
+        v_vips_err("extracting %d,%d,%d,%d failed", width, height, img_width, img_height);
+        return FAIL;
+    }
+    return OK;
 }
 
 RESULT gaussblur_image(VipsImage *in, VipsImage **out, double sigma) {
-    fprintf(stderr, "gaussian blur %f\n", sigma);
-    if (0 == vips_gaussblur(in, out, sigma, NULL)){
-        return OK;
+    v_log(INFO, "gaussian blur sigma %f", sigma);
+    if (vips_gaussblur(in, out, sigma, NULL)){
+        v_vips_err( "gaussian blur sigma %f", sigma);
+        return FAIL;
     }
-    return FAIL;
+    return OK;
 }
 
 
 RESULT resize_image(VipsImage *in, VipsImage **out, int newHeight, int newWidth, unsigned opts) {
+    char *resize_op = NULL;
+
     int curHeight = vips_image_get_height(in);
     int curWidth = vips_image_get_width(in);
 
@@ -103,177 +90,73 @@ RESULT resize_image(VipsImage *in, VipsImage **out, int newHeight, int newWidth,
     double vScale = 0;
 
     if (opts & STRETCH) {
-        fprintf(stderr, "stretch %f %f\n", widthRatio, heightRatio);
+        resize_op = "stretch";
         hScale = widthRatio;
         vScale = heightRatio;
     } else if (opts & EXPAND) {
+        resize_op = "expand";
         if (heightRatio > widthRatio) {
-            fprintf(stderr, "expanding %f\n", heightRatio);
             hScale = heightRatio;
             vScale = heightRatio;
         } else {
-            fprintf(stderr, "expanding %f\n", widthRatio);
             hScale = widthRatio;
             vScale = widthRatio;
         }
-    } else {
+    } else if (opts & RESIZE) {
+        resize_op = "resize";
         if (heightRatio < widthRatio) {
-            fprintf(stderr, "resizing %f\n", heightRatio);
             hScale = heightRatio;
             vScale = heightRatio;
         } else {
-            fprintf(stderr, "resizing %f\n", widthRatio);
             hScale = widthRatio;
             vScale = widthRatio;
         }
     }
 
-    if (0 == vips_resize(in, out, hScale, "vscale", vScale, NULL)) {
-        return OK;
-    }
-    // TODO: Print Vips Error
-    return FAIL;
-}
-
-RESULT get_command_args(char* cmd, int *argc, char **argv) {
-    char *sep = ",";
-
-    *argc=0;
-
-    for (char *token = strtok(cmd, sep); token; *argc = *argc + 1, token = strtok(NULL, sep)) {
-        argv[*argc] = token;
-    }
-
-    return OK;
-}
-
-
-// TODO:
-// - stretch & expand
-RESULT run_command(VipsImage *in, VipsImage **out, format_t* format, int* quality, int* edited, char* cmd) {
-    size_t arg_len = strnlen(cmd, 100);
-
-    int commas = 0;
-    int argc = 0;
-    for (int i = 0; i < strlen(cmd); i++) {
-        if (cmd[i] == ',') {
-            commas++;
-        }
-    }
-
-    char *argv[commas + 1];
-
-    if (OK != get_command_args(cmd, &argc, argv)) {
+    if (vips_resize(in, out, hScale, "vscale", vScale, NULL)) {
+        v_vips_err( "%s (%d,%d)", resize_op, curWidth, curHeight);
         return FAIL;
     }
 
-    /// RESIZE
-    if (argc == 3 && 0 == strcmp("RESIZE", argv[0])) {
-        int width;
-        int height;
-        if (OK != parse_int(argv[1], &width)) {
-            return FAIL;
-        }
-        if (OK != parse_int(argv[2], &height)) {
-            return FAIL;
-        }
-        if (OK != resize_image(in, out, height, width, 0)) {
-            return FAIL;
-        }
-        *edited = 1;
+    int actWidth = vips_image_get_width(*out);
+    int actHeight = vips_image_get_height(*out);
 
-    /// EXTRACT
-    } else if (argc == 5 && 0 == strcmp("EXTRACT", argv[0])) {
-        int left;
-        int top;
-        int width;
-        int height;
-        if (OK != parse_int(argv[1], &left)) {
-            return FAIL;
-        }
-        if (OK != parse_int(argv[2], &top)) {
-            return FAIL;
-        }
-        if (OK != parse_int(argv[3], &width)) {
-            return FAIL;
-        }
-        if (OK != parse_int(argv[4], &height)) {
-            return FAIL;
-        }
-        if (OK != extract_image(in, out, left, top, width, height)) {
-            return FAIL;
-        }
-        *edited = 1;
-
-    /// BLUR
-    } else if (argc == 2 && 0 == strcmp("BLUR", argv[0])) {
-        *edited = 1;
-        double sigma;
-        if (OK != parse_dbl(argv[1], &sigma)) {
-            return FAIL;
-        }
-        if (OK != gaussblur_image(in, out, sigma)){
-            return FAIL;
-        }
-        *edited = 1;
-
-    /// ROTATE
-    } else if (argc == 2 && 0 == strcmp("ROTATE", argv[0])) {
-        int rotation;
-        if (OK != parse_int(argv[1], &rotation)) {
-            return FAIL;
-        }
-        if (OK != rotate_image(in, out, rotation)){
-            return FAIL;
-        }
-        *edited = 1;
-
-    /// AUTOROT
-    } else if (argc == 1 && 0 == strcmp("AUTOROT", argv[0])) {
-        if (OK != autorot_image(in, out)){
-            return FAIL;
-        }
-        *edited = 1;
-
-    /// QUALITY
-    } else if (argc == 2 && 0 == strcmp("QUALITY", argv[0])) {
-        *edited = 0;
-        *quality = DEFAULT_QUALITY;
-        if (OK != parse_int(argv[1], quality)) {
-            return FAIL;
-        }
-
-    /// EXPORT
-    } else if (argc == 2 && 0 == strcmp("EXPORT", argv[0])) {
-        *format = format_from_name(argv[1]);
-    }
-
+    v_log(INFO, "%s (%d,%d) -> (%d,%d)", resize_op, curWidth, curHeight, actWidth, actHeight);
     return OK;
 }
+
 
 RESULT export_image(VipsImage* in, void** out, size_t *n, format_t format, int quality) {
+    v_log(INFO, "exporting to %s with quality %d", get_format_name(format), quality);
+
+    int vips_result = 0;
     switch (format) {
         case JPEG:
-            vips_jpegsave_buffer(in, out, n, "Q", quality, NULL);
+            vips_result = vips_jpegsave_buffer(in, out, n, "Q", quality, NULL);
             break;
         case PNG:
-            vips_pngsave_buffer(in, out, n, "Q", quality, "compression", 0, NULL);
+            vips_result = vips_pngsave_buffer(in, out, n, "Q", quality, "compression", 0, NULL);
             break;
         case WEBP:
-            vips_webpsave_buffer(in, out, n, "Q", quality, NULL);
+            vips_result = vips_webpsave_buffer(in, out, n, "Q", quality, NULL);
             break;
         case TIFF:
-            vips_tiffsave_buffer(in, out, n, "Q", quality, NULL);
+            vips_result = vips_tiffsave_buffer(in, out, n, "Q", quality, NULL);
             break;
         case GIF:
-            vips_magicksave_buffer(in, out, n, "quality", quality, "format", "gif", NULL);
+            vips_result = vips_magicksave_buffer(in, out, n, "quality", quality, "format", "gif", NULL);
             break;
         case BMP:
-            vips_magicksave_buffer(in, out, n, "quality", quality, "format", "bmp", NULL);
+            vips_result = vips_magicksave_buffer(in, out, n, "quality", quality, "format", "bmp", NULL);
             break;
         default:
-            fprintf(stderr, "invalid format selected\n");
+            v_log(ERROR, "invalid format selected");
             return FAIL;
+    }
+
+    if (vips_result) {
+        v_vips_err("exporting to %s", get_format_name(format));
     }
     return OK;
 }
+
