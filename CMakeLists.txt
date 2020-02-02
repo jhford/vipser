@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(vipser C)
 
-set(CMAKE_C_COMPILER_VERSION C99)
+set(CMAKE_C_COMPILER_VERSION C11)
 
 set(SOURCE_FILES src/vipser.c src/types.h src/io.c src/io.h src/sniffing.h src/sniffing.c src/vips_glue.c src/vips_glue.h src/commands.c src/commands.h)
 set(SNIFFER_SOURCE_FILES src/sniffer.c src/types.h src/sniffing.c src/io.c src/io.h src/sniffing.h)

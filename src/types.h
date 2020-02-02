@@ -9,28 +9,28 @@ typedef int bool_t;
 #define V_FALSE 0
 
 // Resizing strategies
-#define RESIZE 0u
-#define STRETCH 1u
-#define EXPAND  2u
+#define RESIZE 1u
+#define STRETCH 2u
+#define EXPAND 4u
 
 // Types
-#define UNK  0
+#define UNK 0
 #define JPEG 0x1
-#define PNG  0x2
+#define PNG 0x2
 #define WEBP 0x3
 #define TIFF 0x4
-#define GIF  0x5
-#define BMP  0x6
+#define GIF 0x5
+#define BMP 0x6
 
 // Names used in IPC
 #define JPEG_NAME "jpg"
 #define JPEG_NAME2 "jpeg"
-#define PNG_NAME  "png"
+#define PNG_NAME "png"
 #define WEBP_NAME "webp"
 #define TIFF_NAME "tiff"
-#define GIF_NAME  "gif"
-#define BMP_NAME  "bmp"
-#define UNK_NAME  "<unknown>"
+#define GIF_NAME "gif"
+#define BMP_NAME "bmp"
+#define UNK_NAME "<unknown>"
 
 // MIME Types as returned by libmagic
 #define JPEG_MIME "image/jpeg"
@@ -43,4 +43,4 @@ typedef int bool_t;
 
 typedef int format_t;
 
-#endif //VIPSER_TYPES_H
+#endif // VIPSER_TYPES_H
