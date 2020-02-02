@@ -55,8 +55,7 @@ RESULT extract_image(VipsImage *in, VipsImage **out, int left, int top,
     return FAIL;
   }
 
-
-    int img_height = vips_image_get_height(in);
+  int img_height = vips_image_get_height(in);
   int img_width = vips_image_get_width(in);
 
   // TODO: Double check this is correct
@@ -88,13 +87,13 @@ RESULT resize_image(VipsImage *in, VipsImage **out, int newHeight, int newWidth,
   char *resize_op = NULL;
 
   if (newHeight < 1) {
-      v_log(ERROR, "width must be > 1, not %d", newHeight);
-      return FAIL;
+    v_log(ERROR, "width must be > 1, not %d", newHeight);
+    return FAIL;
   }
 
   if (newHeight < 1) {
-      v_log(ERROR, "height must be > 1, not %d", newWidth);
-      return FAIL;
+    v_log(ERROR, "height must be > 1, not %d", newWidth);
+    return FAIL;
   }
 
   int curHeight = vips_image_get_height(in);
@@ -129,8 +128,8 @@ RESULT resize_image(VipsImage *in, VipsImage **out, int newHeight, int newWidth,
       vScale = widthRatio;
     }
   } else {
-      v_log(ERROR, "unknown resize mode: 0x%x", opts);
-      return FAIL;
+    v_log(ERROR, "unknown resize mode: 0x%x", opts);
+    return FAIL;
   }
 
   if (vips_resize(in, out, hScale, "vscale", vScale, NULL)) {
@@ -179,13 +178,14 @@ RESULT export_image(VipsImage *in, void **out, size_t *n, format_t format,
     return FAIL;
   }
 
-  //int width = vips_image_get_width(in);
-  //int height = vips_image_get_height(in);
+  // int width = vips_image_get_width(in);
+  // int height = vips_image_get_height(in);
   int height = 0;
   int width = 0;
 
   if (vips_result) {
-    v_vips_err("exporting to %d, %d %s", width, height, get_format_name(format));
+    v_vips_err("exporting to %d, %d %s", width, height,
+               get_format_name(format));
   }
   return OK;
 }

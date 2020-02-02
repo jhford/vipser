@@ -25,7 +25,8 @@ RESULT parse_int(char *val, int *out) {
   }
 
   if (long_v > INT_MAX) {
-    v_log(ERROR, "parse_int: %s is larger than allowed max of %d", val, INT_MAX);
+    v_log(ERROR, "parse_int: %s is larger than allowed max of %d", val,
+          INT_MAX);
     return FAIL;
   }
 

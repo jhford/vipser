@@ -64,7 +64,8 @@ int main(int argc, char **argv) {
   vips_concurrency_set(8);
 
   // Load the input into a VipsImage
-  image = vips_image_new_from_buffer(input_buf, input_size, "", "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+  image = vips_image_new_from_buffer(input_buf, input_size, "", "access",
+                                     VIPS_ACCESS_SEQUENTIAL, NULL);
   if (image == NULL) {
     v_vips_err("error reading image from buffer");
     exit(EXIT_FAILURE);
