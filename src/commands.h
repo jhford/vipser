@@ -25,6 +25,8 @@ RESULT run_command(VipsImage **in, format_t *format, int *quality, char *cmd);
 #define STRETCH_CMD "STRETCH"
 #define EXPAND_CMD "EXPAND"
 #define EXTRACT_CMD "EXTRACT"
+#define EMBED_BLACK_CMD "EMBBLK"
+#define EMBED_WHITE_CMD "EMBWHT"
 #define BLUR_CMD "BLUR"
 #define EXPORT_CMD "EXPORT"
 #define QUALITY_CMD "QUALITY"
