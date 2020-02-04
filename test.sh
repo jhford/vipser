@@ -1,5 +1,9 @@
 #!/bin/bash
 
+export EF_ALLOW_MALLOC_0=1
+./build-deps
+export PKG_CONFIG_PATH=./deps/lib/pkgconfig:./deps/lib64/pkgconfig
+
 # Make everything
 cmake --build . --target vipser vipser-efence sniffer
 

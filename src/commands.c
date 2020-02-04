@@ -278,7 +278,10 @@ RESULT run_command(VipsImage **in, format_t *format, int *quality, char *cmd) {
   } else if (is_extract_command(argc, argv)) {
     outcome = extract_command(*in, &out, argc, argv);
   } else if (is_blur_command(argc, argv)) {
-    outcome = blur_command(*in, &out, argc, argv);
+    v_log(WARN, "SKIPPING BLUR");
+    outcome = OK;
+    edited=V_FALSE;
+    //outcome = blur_command(*in, &out, argc, argv);
   } else if (is_rotate_command(argc, argv)) {
     outcome = rotate_command(*in, &out, argc, argv);
   } else if (is_autorotate_command(argc, argv)) {
