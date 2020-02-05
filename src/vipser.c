@@ -61,6 +61,19 @@ int main(int argc, char **argv) {
         v_log(ERROR, "error determining buffer type");
         exit(EXIT_FAILURE);
     }
+
+    if (UNK == out_format) {
+        if (input_size > 5) {
+            v_log(ERROR, "unsupported image type [0x%x 0x%x 0x%x 0x%x...]", input_buf[0], input_buf[1], input_buf[2], input_buf[3]);
+        } else if (input_size == 4) {
+            v_log(ERROR, "unsupported image type [0x%x 0x%x 0x%x 0x%x]", input_buf[0], input_buf[1], input_buf[2], input_buf[3]);
+        } else {
+            // Likely not an image
+            v_log(ERROR, "unsupported image type, input less than 4 bytes");
+        }
+        exit(EXIT_FAILURE);
+    }
+
     v_log(INFO, "input type determined: %s", get_format_name(out_format));
 
     vips_concurrency_set(8);
