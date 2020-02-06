@@ -48,4 +48,9 @@ typedef struct Buffer {
     void *data;
 } Buffer;
 
+static inline void BufferClear(Buffer *buf) {
+    buf->data = NULL;
+    buf->len = 0;
+}
+
 #endif // VIPSER_TYPES_H

@@ -51,12 +51,10 @@ int main(int argc, char **argv) {
 
     // The input and output buffers
     Buffer input;
-    input.len = 0;
-    input.data = NULL;
+    BufferClear(&input);
 
     Buffer output;
-    output.len = 0;
-    output.data = NULL;
+    BufferClear(&output);
 
     // Miscellaneous variables
     size_t bytes_written = 0;
@@ -124,7 +122,9 @@ int main(int argc, char **argv) {
 
     // Cleanup memory
     free(input.data);
+    BufferClear(&input);
     g_free(output.data);
+    BufferClear(&output);
 
     // Shutdown Vips
     vips_thread_shutdown();
