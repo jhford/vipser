@@ -8,13 +8,13 @@ int main(void) {
     char *type = NULL;
 
     // Initialise libmagic
-    if (OK != magic_init()) {
+    if (magic_init()) {
         perror("sniffer");
         exit(EXIT_FAILURE);
     }
 
     // Determine the file type for the file descriptor
-    if (OK != determine_descriptor_type(STDIN_FILENO, &type)) {
+    if (determine_descriptor_type(STDIN_FILENO, &type)) {
         perror("sniffer");
         exit(EXIT_FAILURE);
     }

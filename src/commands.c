@@ -4,7 +4,6 @@
 
 #include <strings.h>
 #include <sys/errno.h>
-#include <unistd.h> // only for syncfs()
 
 #include <vips/vips.h>
 
@@ -110,11 +109,11 @@ RESULT resize_command(VipsImage *in, VipsImage **out, char **argv) {
     int width = 0;
     int height = 0;
 
-    if (OK != parse_int(argv[1], &width)) {
+    if (parse_int(argv[1], &width)) {
         v_log(ERROR, "failed to parse resize width");
         return FAIL;
     }
-    if (OK != parse_int(argv[2], &height)) {
+    if (parse_int(argv[2], &height)) {
         v_log(ERROR, "failed to parse resize height");
         return FAIL;
     }
@@ -145,19 +144,19 @@ RESULT extract_command(VipsImage *in, VipsImage **out, char **argv) {
     int width = 0;
     int height = 0;
 
-    if (OK != parse_int(argv[1], &left)) {
+    if (parse_int(argv[1], &left)) {
         v_log(ERROR, "failed to parse extract left");
         return FAIL;
     }
-    if (OK != parse_int(argv[2], &top)) {
+    if (parse_int(argv[2], &top)) {
         v_log(ERROR, "failed to parse extract top");
         return FAIL;
     }
-    if (OK != parse_int(argv[3], &width)) {
+    if (parse_int(argv[3], &width)) {
         v_log(ERROR, "failed to parse extract width");
         return FAIL;
     }
-    if (OK != parse_int(argv[4], &height)) {
+    if (parse_int(argv[4], &height)) {
         v_log(ERROR, "failed to parse extract height");
         return FAIL;
     }
@@ -187,19 +186,19 @@ RESULT embed_command(VipsImage *in, VipsImage **out, char **argv) {
     int width = 0;
     int height = 0;
 
-    if (OK != parse_int(argv[1], &x)) {
+    if (parse_int(argv[1], &x)) {
         v_log(ERROR, "failed to parse extract x");
         return FAIL;
     }
-    if (OK != parse_int(argv[2], &y)) {
+    if (parse_int(argv[2], &y)) {
         v_log(ERROR, "failed to parse extract y");
         return FAIL;
     }
-    if (OK != parse_int(argv[3], &width)) {
+    if (parse_int(argv[3], &width)) {
         v_log(ERROR, "failed to parse extract width");
         return FAIL;
     }
-    if (OK != parse_int(argv[4], &height)) {
+    if (parse_int(argv[4], &height)) {
         v_log(ERROR, "failed to parse extract height");
         return FAIL;
     }
@@ -234,12 +233,12 @@ bool_t is_rotate_command(int argc, char **argv) {
 
 RESULT rotate_command(VipsImage *in, VipsImage **out, char **argv) {
     int rotation = 0;
-    if (OK != parse_int(argv[1], &rotation)) {
+    if (parse_int(argv[1], &rotation)) {
         v_log(ERROR, "failed to parse rotation");
         return FAIL;
     }
 
-    if (OK != rotate_image(in, out, rotation)) {
+    if (rotate_image(in, out, rotation)) {
         v_log(ERROR, "rotate %d", rotation);
         return FAIL;
     }
@@ -258,12 +257,12 @@ bool_t is_blur_command(int argc, char **argv) {
 RESULT blur_command(VipsImage *in, VipsImage **out, char **argv) {
     double sigma = 0;
 
-    if (OK != parse_dbl(argv[1], &sigma)) {
+    if (parse_dbl(argv[1], &sigma)) {
         v_log(ERROR, "failed to parse gaussian blur sigma");
         return FAIL;
     }
 
-    if (OK != gaussblur_image(in, out, sigma)) {
+    if (gaussblur_image(in, out, sigma)) {
         v_log(ERROR, "blur %f", sigma);
         return FAIL;
     }
@@ -280,7 +279,7 @@ bool_t is_quality_command(int argc, char **argv) {
 }
 
 RESULT quality_command(int *quality, char **argv) {
-    if (OK != parse_int(argv[1], quality)) {
+    if (parse_int(argv[1], quality)) {
         *quality = DEFAULT_QUALITY;
         v_log(ERROR, "failed to parse quality");
         return FAIL;
@@ -400,7 +399,7 @@ RESULT run_commands(int argc, char **argv, Buffer input, Buffer *output, format_
     int outcome = OK;
 
     // Import the image
-    if (OK != import_image(false, input, &image)) {
+    if (import_image(false, input, &image)) {
         v_log(ERROR, "importing image");
         return FAIL;
     }
@@ -410,7 +409,7 @@ RESULT run_commands(int argc, char **argv, Buffer input, Buffer *output, format_
     for (int i = 1; i < argc; i++) {
         v_log(INFO, "initiating command %s", argv[i]);
 
-        if (OK != run_command(&image, format, quality, argv[i])) {
+        if (run_command(&image, format, quality, argv[i])) {
             v_log(ERROR, "error running command: %s", argv[i]);
             outcome = FAIL;
             break;
@@ -418,13 +417,13 @@ RESULT run_commands(int argc, char **argv, Buffer input, Buffer *output, format_
     }
 
     // If a command failed, release the VipsImage and return failing
-    if (OK != outcome) {
+    if (outcome) {
         g_object_unref(image);
         return FAIL;
     }
 
     // If the image was successfully processed, export it
-    if (OK != export_image(image, output, *format, *quality)) {
+    if (export_image(image, output, *format, *quality)) {
         v_log(ERROR, "exporting image");
         return FAIL;
     }

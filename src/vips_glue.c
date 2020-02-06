@@ -15,13 +15,13 @@ RESULT init_vips(char *argv0) {
 
 RESULT read_input(int input_fd, Buffer *output, format_t *format) {
     // Read the full input into memory
-    if (OK != read_all(input_fd, output)) {
+    if (read_all(input_fd, output)) {
         v_log(ERROR, "error while reading input");
         return FAIL;
     }
 
     // Determine the type of input buffer
-    if (OK != determine_buffer_type(output, format)) {
+    if (determine_buffer_type(output, format)) {
         v_log(ERROR, "error determining buffer type");
         return FAIL;
     }

@@ -72,21 +72,21 @@ int main(int argc, char **argv) {
     int output_fd = get_output_fd();
 
     // Initialise sniffing
-    if (OK != magic_init()) {
+    if (magic_init()) {
         v_log(ERROR, "error initialising libmagic");
         exit(EXIT_FAILURE);
     }
     v_log(DEBUG, "magic initialised");
 
     // Initialise the Vips
-    if (OK != init_vips(argv[0])) {
+    if (init_vips(argv[0])) {
         v_log(ERROR, "error initialising vips");
         exit(EXIT_FAILURE);
     }
     v_log(DEBUG, "vips initialised");
 
     // Read all the input from the input file
-    if (OK != read_input(input_fd, &input, &format)) {
+    if (read_input(input_fd, &input, &format)) {
         v_log(ERROR, "error reading input");
         exit(EXIT_FAILURE);
     }
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
     vips_concurrency_set(8);
 
     // Run all the commands.
-    if (OK != run_commands(argc, argv, input, &output, &format, &quality)) {
+    if (run_commands(argc, argv, input, &output, &format, &quality)) {
         v_log(ERROR, "error running commands");
         exit(EXIT_FAILURE);
     }
