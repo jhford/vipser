@@ -43,4 +43,9 @@ typedef int bool_t;
 
 typedef int format_t;
 
+typedef struct Buffer {
+    size_t len;
+    void *data;
+} Buffer;
+
 #endif // VIPSER_TYPES_H

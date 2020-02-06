@@ -6,7 +6,7 @@
 #include "types.h"
 
 #define BUFFER_SIZE 4096
-RESULT read_all(int fd, size_t *len, void **buf);
+RESULT read_all(int input_fd, Buffer *output);
 
 typedef unsigned level;
 #define DEBUG 1u

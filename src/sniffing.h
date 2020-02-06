@@ -12,7 +12,7 @@ RESULT magic_init();
 RESULT determine_descriptor_type(int fd, char **name);
 
 // Determine the format_t of a given buffer
-RESULT determine_buffer_type(size_t n, void *_buf, format_t *fmt);
+RESULT determine_buffer_type(Buffer *input, format_t *fmt);
 
 // Map a format name to the corresponding format_t
 format_t format_from_name(const char *name);

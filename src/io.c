@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <vips/vips.h>
 
-RESULT read_all(int fd, size_t *len, void **buf) {
+RESULT read_all(int input_fd, Buffer *output) {
     char *in_buf = NULL;
     char *input = NULL;
     size_t input_size = 0;
@@ -20,7 +20,7 @@ RESULT read_all(int fd, size_t *len, void **buf) {
 
     // Read in the bytes
     for (size_t i = 0;; i++) {
-        n_bytes = read(fd, in_buf, BUFFER_SIZE);
+        n_bytes = read(input_fd, in_buf, BUFFER_SIZE);
         if (n_bytes == -1) {
             v_log_errno(errno, "reading buffer");
             return FAIL;
@@ -39,8 +39,8 @@ RESULT read_all(int fd, size_t *len, void **buf) {
         memcpy(input + (i * BUFFER_SIZE), in_buf, n_bytes);
     }
 
-    *len = input_size;
-    *buf = input;
+    output->len = input_size;
+    output->data = input;
 
     free(in_buf);
     return OK;

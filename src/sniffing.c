@@ -94,13 +94,13 @@ RESULT determine_descriptor_type(int fd, char **name) {
     return OK;
 }
 
-RESULT determine_buffer_type(size_t n, void *_buf, format_t *fmt) {
-    u_int8_t *buf = (u_int8_t*)_buf;
+RESULT determine_buffer_type(Buffer *input, format_t *fmt) {
+    u_int8_t *buf = (u_int8_t *)input->data;
 
     *fmt = UNK;
 
     // Shortcut the buffer type if we're reasonably certain about the image type
-    if (n > 12) {
+    if (input->len > 12) {
         if (buf[0] == 0xFF && buf[1] == 0xD8 && buf[2] == 0xFF) {
             *fmt = JPEG;
         }
@@ -114,7 +114,7 @@ RESULT determine_buffer_type(size_t n, void *_buf, format_t *fmt) {
             *fmt = PNG;
         }
         if ((buf[0] == 0x49 && buf[1] == 0x49 && buf[2] == 0x2A && buf[3] == 0x0) ||
-        (buf[0] == 0x4D && buf[1] == 0x4D && buf[2] == 0x0 && buf[3] == 0x2A)) {
+            (buf[0] == 0x4D && buf[1] == 0x4D && buf[2] == 0x0 && buf[3] == 0x2A)) {
             *fmt = TIFF;
         }
         if (buf[8] == 0x57 && buf[9] == 0x45 && buf[10] == 0x42 && buf[11] == 0x50) {
@@ -127,7 +127,7 @@ RESULT determine_buffer_type(size_t n, void *_buf, format_t *fmt) {
     }
 
     v_log(INFO, "using libmagic to sniff");
-    const char *type = magic_buffer(cookie, _buf, n);
+    const char *type = magic_buffer(cookie, input->data, input->len);
 
     if (type == NULL) {
         fprintf(stdout, "magic: %s", magic_error(cookie));

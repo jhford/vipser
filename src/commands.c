@@ -20,7 +20,7 @@ RESULT parse_int(char *val, int *out) {
     long long_v = strtol(val, NULL, 0);
 
     if (errno != 0) {
-        v_log_errno(ERROR, errno);
+        v_log_errno(errno, "parsing int from %s", val);
         return FAIL;
     }
 
@@ -41,7 +41,7 @@ RESULT parse_dbl(char *val, double *out) {
     *out = strtod(val, NULL);
 
     if (errno != 0) {
-        v_log_errno(ERROR, errno);
+        v_log_errno(errno, "parsing double from %s", val);
         *out = 0;
         return FAIL;
     }
@@ -360,20 +360,17 @@ RESULT run_command(VipsImage **in, format_t *format, int *quality, char *cmd) {
 
 // Argv[] needs to have 'something' at index 0 to account for this
 // function being designed to consume an argv as given by the system
-RESULT run_commands(int argc, char** argv,
-                    size_t inLen, void *inBuf,
-                    size_t *outLen, void **outBuf,
-                    format_t *format, int *quality){
+RESULT run_commands(int argc, char **argv, Buffer input, Buffer *output, format_t *format, int *quality) {
 
     // VipsImage that's being processed
-    VipsImage* image;
+    VipsImage *image;
 
     // We need to track if the commands failed so that we can skip
     // exporting the image
     int outcome = OK;
 
     // Import the image
-    if (OK != import_image(inBuf, inLen, V_FALSE, &image)) {
+    if (OK != import_image(V_FALSE, input, &image)) {
         v_log(ERROR, "importing image");
         return FAIL;
     }
@@ -396,7 +393,7 @@ RESULT run_commands(int argc, char** argv,
     }
 
     // Export the image
-    if (OK != export_image(image, outBuf, outLen, *format, *quality)) {
+    if (OK != export_image(image, output, *format, *quality)) {
         v_log(ERROR, "exporting image");
         return FAIL;
     }
@@ -405,38 +402,3 @@ RESULT run_commands(int argc, char** argv,
 
     return OK;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
