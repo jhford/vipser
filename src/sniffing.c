@@ -64,8 +64,6 @@ format_t format_from_mime(const char *mime) {
     return UNK;
 }
 
-// Initialise libmagic and set the global magic cookie.  This function
-// should only be called once.
 RESULT magic_init() {
     // TODO we should embed the image magic database into this program so that
     // we don't depend on anything on the local filesystem

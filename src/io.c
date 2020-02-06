@@ -9,40 +9,46 @@
 #include <unistd.h>
 #include <vips/vips.h>
 
+// Read all the input on the given file descriptor into the
+// output buffer
 RESULT read_all(int input_fd, Buffer *output) {
-    char *in_buf = NULL;
-    char *input = NULL;
-    size_t input_size = 0;
-    int n_bytes = 0;
+    char *read_buf = NULL;
 
     // Allocate reading buffer
-    in_buf = malloc(BUFFER_SIZE);
+    read_buf = malloc(BUFFER_SIZE * sizeof(uint8_t));
+    // TODO check that this was allocated
+    if (read_buf == NULL) {
+        v_log(ERROR, "failed to allocate input read buffer");
+        return FAIL;
+    }
 
     // Read in the bytes
-    for (size_t i = 0;; i++) {
-        n_bytes = read(input_fd, in_buf, BUFFER_SIZE);
-        if (n_bytes == -1) {
+    for (ssize_t bytes = 0; ; ) {
+        bytes = read(input_fd, read_buf, BUFFER_SIZE);
+        if (bytes == -1) {
             v_log_errno(errno, "reading buffer");
             return FAIL;
         }
 
-        input_size += n_bytes;
-
-        if (n_bytes == 0) {
+        if (bytes == 0) {
             break;
         }
 
-        input = realloc(input, input_size);
+        // Expand the size of the input buffer
+        output->data = realloc(output->data, output->len + bytes);
+        if (output->data == NULL) {
+            v_log(ERROR, "error reallocating memory, exiting");
+            exit(EXIT_FAILURE);
+        }
 
-        // Yikes this is uuuugly pointer arithmetic but...
-        // If you have a better way to do this, please let me know
-        memcpy(input + (i * BUFFER_SIZE), in_buf, n_bytes);
+        for (ssize_t j = 0; j < bytes; j++) {
+            ((char*)output->data)[j + output->len] = read_buf[j];
+        }
+
+        output->len += bytes;
     }
 
-    output->len = input_size;
-    output->data = input;
-
-    free(in_buf);
+    free(read_buf);
     return OK;
 }
 
@@ -51,7 +57,7 @@ struct timespec prog_start;
 void v_log_init() {
     if (-1 == clock_gettime(CLOCK_MONOTONIC, &prog_start)) {
         perror("getting program start time");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -134,7 +140,7 @@ void v_log(level lvl, const char *fmt, ...) {
         break;
     }
 
-    struct timespec rcvd;
+    struct timespec rcvd = {0};
 
     if (-1 == clock_gettime(CLOCK_MONOTONIC, &rcvd)) {
         perror("getting v_log time");
@@ -150,7 +156,7 @@ void v_log(level lvl, const char *fmt, ...) {
     }
 
     // TODO: This is totally invalid in the case where the two tv_sec members
-    // are differnt and likely just generally broken
+    // are different and likely just generally broken
 
     fprintf(stderr, "%s - %3lld.%.9ld: ", lvl_string, (long long)diff.tv_sec, diff.tv_nsec);
 

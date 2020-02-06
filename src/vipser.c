@@ -10,9 +10,12 @@
 #include "types.h"
 #include "vips_glue.h"
 
+// For easier testing while developing, a file in the cwd
+// called input can be used as input and write to output
 #define OVERRIDE_INPUT "input"
 #define OVERRIDE_OUTPUT "output"
 
+// Return the file descriptor to the input file
 int get_input_fd() {
 #ifdef OVERRIDE_INPUT
     int fd;
@@ -28,6 +31,7 @@ int get_input_fd() {
 #endif
 }
 
+// Return the file descriptor to the output file
 int get_output_fd() {
 #ifdef OVERRIDE_OUTPUT
     int fd;

@@ -2,18 +2,21 @@
 #define VIPSER_TYPES_H
 
 typedef int RESULT;
+#define OK 0
+#define FAIL 1
+
+// boolean names are nicer
 typedef int bool_t;
-#define OK 1
-#define FAIL 0
-#define V_TRUE 1
-#define V_FALSE 0
+#define true 1
+#define false 0
 
 // Resizing strategies
 #define RESIZE 1u
 #define STRETCH 2u
 #define EXPAND 4u
 
-// Types
+// Formats
+typedef int format_t;
 #define UNK 0
 #define JPEG 0x1
 #define PNG 0x2
@@ -41,13 +44,13 @@ typedef int bool_t;
 #define BMP_MIME1 "image/x-ms-bmp"
 #define BMP_MIME2 "image/bmp"
 
-typedef int format_t;
-
+// A buffer stores data and a size of the data
 typedef struct Buffer {
     size_t len;
     void *data;
 } Buffer;
 
+// reset a buffer to its zero state
 static inline void BufferClear(Buffer *buf) {
     buf->data = NULL;
     buf->len = 0;

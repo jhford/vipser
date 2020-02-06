@@ -29,7 +29,12 @@ add_executable(sniffer ${SNIFFER_SOURCES})
 set(INC_DIRS ${GLIB_INCLUDE_DIRS} ${VIPS_INCLUDE_DIRS} /usr/local/include)
 set(LIB_DIRS ${GLIB_LIBRARY_DIRS} ${VIPS_LIBRARY_DIRS} /usr/local/lib /usr/local/lib)
 set(LIBS ${GLIB_LIBRARIES} ${VIPS_LIBRARIES} magic)
-set(OPTS ${GLIB_CFLAGS} ${VIPS_CFLAGS} ${GLIB_CFLAGS_OTHER} ${VIPS_CFLAGS_OTHER})
+set(OPTS ${GLIB_CFLAGS} ${VIPS_CFLAGS} ${GLIB_CFLAGS_OTHER} ${VIPS_CFLAGS_OTHER} -O2 -Werror -Wall -Wextra)
+
+find_program(CPPCHECK NAMES cppcheck)
+set(CMAKE_C_CPPCHECK  ${CPPCHECK})
+find_program(CLANG_TIDY NAMES clang-tidy)
+set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY}")
 
 target_include_directories(vipser PUBLIC ${INC_DIRS})
 target_compile_options(vipser PUBLIC ${OPTS})

@@ -53,6 +53,7 @@ RESULT import_image(bool_t seq, Buffer input, VipsImage **output) {
         v_vips_err("error creating VipsImage from buffer");
         return FAIL;
     }
+
     return OK;
 }
 
