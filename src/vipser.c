@@ -13,134 +13,123 @@
 #define OVERRIDE_INPUT "input"
 #define OVERRIDE_OUTPUT "output"
 
-//#define V_DEBUG 1
-
-int main(int argc, char **argv) {
-    v_log_init();
-    v_log(INFO, "startup");
-
-    // Initialise sniffing
-    magic_init();
-    v_log(INFO, "magic init");
-
-    // Initialize the Vips library
-    if (VIPS_INIT(argv[0])) {
-        v_vips_err("initialising vips");
+int get_input_fd() {
+#ifdef OVERRIDE_INPUT
+    int fd;
+    errno = 0;
+    fd = open(OVERRIDE_INPUT, O_RDONLY);
+    if (fd < 0) {
+        v_log_errno(errno, "opening input file %s", OVERRIDE_INPUT);
         exit(EXIT_FAILURE);
     }
-    v_log(INFO, "vips init");
+    return fd;
+#else
+    return STDIN_FILENO;
+#endif
+}
 
-    // VipsImages store the image-process images
-    VipsImage *image = NULL;
+int get_output_fd() {
+#ifdef OVERRIDE_OUTPUT
+    int fd;
+    errno = 0;
+    fd = open(OVERRIDE_OUTPUT, O_WRONLY|O_SYNC|O_TRUNC|O_CREAT, 0666);
+    if (fd < 0) {
+        v_log_errno(errno, "opening output file %s", OVERRIDE_OUTPUT);
+        exit(EXIT_FAILURE);
+    }
+    return fd;
+#else
+    return STDIN_FILENO;
+#endif
+}
+
+int main(int argc, char **argv) {
 
     // Output format and quality
-    format_t out_format = JPEG;
-    int out_quality = DEFAULT_QUALITY;
+    format_t format = JPEG;
+    int quality = DEFAULT_QUALITY;
 
-    // This input buffer needs to live until the image is exported
-    char *input_buf = NULL;
+    // The input and output buffers
+    void *input_buf = NULL;
     size_t input_size = 0;
+    void *output_buf = NULL;
+    size_t output_size = 0;
 
-    // Read in the file
-#ifdef OVERRIDE_INPUT
-    int fd = open(OVERRIDE_INPUT, O_RDONLY);
-    if (OK != read_all(fd, &input_size, &input_buf)) {
-#else
-    if (OK != read_all(STDIN_FILENO, &input_size, &input_buf)) {
-#endif
+    // Miscellaneous variables
+    size_t bytes_written = 0;
+
+    // Initialise logging
+    v_log_init();
+    v_log(DEBUG, "logging initialised");
+
+    // Input file descriptors
+    int input_fd = get_input_fd();
+    int output_fd = get_output_fd();
+
+    // Initialise sniffing
+    if (OK != magic_init()) {
+        v_log(ERROR, "error initialising libmagic");
+        exit(EXIT_FAILURE);
+    }
+    v_log(DEBUG, "magic initialised");
+
+    // Initialise the Vips
+    if (OK != init_vips(argv[0])) {
+        v_log(ERROR, "error initialising libmagic");
+        exit(EXIT_FAILURE);
+    }
+    v_log(DEBUG, "vips initialised");
+
+    // Read all the input from the input file
+    if (OK != read_input(input_fd, &input_buf, &input_size, &format)) {
         v_log(ERROR, "error reading input");
         exit(EXIT_FAILURE);
     }
-    v_log(INFO, "read %d bytes of input", input_size);
-#ifdef OVERRIDE_INPUT
-    close(fd);
-#endif
+    v_log(INFO, "read %d bytes", input_size);
 
-    // Determine which file type the input image is, set that as the default
-    if (OK != determine_buffer_type(input_size, input_buf, &out_format)) {
-        v_log(ERROR, "error determining buffer type");
+    // Close the input file as soon as possible
+    errno = 0;
+    if(close(input_fd)) {
+        v_log_errno(errno, "closing input");
         exit(EXIT_FAILURE);
     }
 
-    if (UNK == out_format) {
-        if (input_size > 5) {
-            v_log(ERROR, "unsupported image type [0x%x 0x%x 0x%x 0x%x...]", input_buf[0], input_buf[1], input_buf[2], input_buf[3]);
-        } else if (input_size == 4) {
-            v_log(ERROR, "unsupported image type [0x%x 0x%x 0x%x 0x%x]", input_buf[0], input_buf[1], input_buf[2], input_buf[3]);
-        } else {
-            // Likely not an image
-            v_log(ERROR, "unsupported image type, input less than 4 bytes");
-        }
-        exit(EXIT_FAILURE);
-    }
-
-    v_log(INFO, "input type determined: %s", get_format_name(out_format));
-
+    // Enable concurrency -- TODO benchmark whether this is worthwhile
     vips_concurrency_set(8);
 
-    // Load the input into a VipsImage
-    image = vips_image_new_from_buffer(input_buf, input_size, "", "access", VIPS_ACCESS_SEQUENTIAL, NULL);
-    if (image == NULL) {
-        v_vips_err("error reading image from buffer");
+    // Run all the commands.
+    if (OK != run_commands(argc, argv,
+                           input_size, input_buf,
+                           &output_size, &output_buf,
+                           &format, &quality)) {
+        v_log(ERROR, "error running commands");
         exit(EXIT_FAILURE);
     }
-    v_log(INFO, "create input image");
 
-    // Each command line argument is an instruction for this program to perform
-    // on an image.  Each operation occurs completely independently of all
-    // others and so results of previous operations cannot be referenced image
-    // later ones
-    for (int i = 1; i < argc; i++) {
-        v_log(INFO, "initiating command %s", argv[i]);
-
-        if (OK != run_command(&image, &out_format, &out_quality, argv[i])) {
-            v_log(ERROR, "error running command: %s", argv[i]);
-            exit(EXIT_FAILURE);
-        }
-
-        v_log(INFO, "command complete");
-    }
-
-    // Export the image as a buffer, which is allocated internally with glib by
-    // vips
-    void *out_buf = NULL;
-    size_t out_size = 0;
-
-    if (OK != export_image(image, &out_buf, &out_size, out_format, out_quality)) {
-        v_log(ERROR, "exporting image");
-        exit(EXIT_FAILURE);
-    }
-    v_log(INFO, "exported %s %d bytes", get_format_name(out_format), out_size);
-
-    // We're finally done with the image
-    g_object_unref(image);
-
-    // Export Image
-    size_t bytes_written = 0;
-    // Write the resulting image to STDOUT
+    // Write the output file
     errno = 0;
-#ifdef OVERRIDE_OUTPUT
-    int fd2 = open(OVERRIDE_OUTPUT, O_WRONLY | O_SYNC | O_TRUNC | O_CREAT, 0666);
-    if (0 > (bytes_written = write(fd2, out_buf, out_size))) {
-#else
-    if (0 > (bytes_written = write(STDOUT_FILENO, out_buf, out_size))) {
-#endif
-        v_log_errno(ERROR, errno);
+    bytes_written = write(output_fd, output_buf, output_size);
+    if (0 > bytes_written) {
+        v_log_errno(errno, "writing output");
         exit(EXIT_FAILURE);
     }
     v_log(INFO, "wrote %d bytes of output", bytes_written);
 
-#ifdef OVERRIDE_OUTPUT
-    close(fd2);
-#endif
+    // Close the input and output
+    errno = 0;
+    if(close(output_fd)) {
+        v_log_errno(errno, "closing output file");
+        exit(EXIT_FAILURE);
+    }
 
     // Cleanup memory
     free(input_buf);
     input_buf = NULL;
 
-    g_free(out_buf);
-    out_buf = NULL;
+    g_free(output_buf);
+    output_buf = NULL;
 
     // Shutdown Vips
+    vips_thread_shutdown();
     vips_shutdown();
 }

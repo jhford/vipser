@@ -6,7 +6,7 @@
 #include "types.h"
 
 #define BUFFER_SIZE 4096
-RESULT read_all(int fd, size_t *size, char **out);
+RESULT read_all(int fd, size_t *len, void **buf);
 
 typedef unsigned level;
 #define DEBUG 1u
@@ -15,7 +15,7 @@ typedef unsigned level;
 #define ERROR 8u
 
 void v_log_init();
-void v_log_errno(level lvl, int err);
+void v_log_errno(int err, const char *fmt, ...);
 void v_vips_err(const char *fmt, ...);
 void v_log(level lvl, const char *fmt, ...);
 

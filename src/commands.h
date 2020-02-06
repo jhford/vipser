@@ -19,6 +19,11 @@
 // must be released with g_object_unref()
 RESULT run_command(VipsImage **in, format_t *format, int *quality, char *cmd);
 
+RESULT run_commands(int argc, char** argv,
+                    size_t inLen, void *inBuf,
+                    size_t *outLen, void **outBuf,
+                    format_t *format, int *quality);
+
 #define AUTOROT_CMD "AUTOROT"
 #define ROTATE_CMD "ROTATE"
 #define RESIZE_CMD "RESIZE"

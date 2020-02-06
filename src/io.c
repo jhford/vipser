@@ -9,22 +9,20 @@
 #include <unistd.h>
 #include <vips/vips.h>
 
-// Read an entire file descriptor into a buffer pointed to by `out` of size
-// `size`
-RESULT read_all(int fd, size_t *size, char **out) {
-    char *buf = NULL;
+RESULT read_all(int fd, size_t *len, void **buf) {
+    char *in_buf = NULL;
     char *input = NULL;
     size_t input_size = 0;
     int n_bytes = 0;
 
     // Allocate reading buffer
-    buf = malloc(BUFFER_SIZE);
+    in_buf = malloc(BUFFER_SIZE);
 
     // Read in the bytes
     for (size_t i = 0;; i++) {
-        n_bytes = read(fd, buf, BUFFER_SIZE);
+        n_bytes = read(fd, in_buf, BUFFER_SIZE);
         if (n_bytes == -1) {
-            perror("read_all");
+            v_log_errno(errno, "reading buffer");
             return FAIL;
         }
 
@@ -38,13 +36,13 @@ RESULT read_all(int fd, size_t *size, char **out) {
 
         // Yikes this is uuuugly pointer arithmetic but...
         // If you have a better way to do this, please let me know
-        memcpy(input + (i * BUFFER_SIZE), buf, n_bytes);
+        memcpy(input + (i * BUFFER_SIZE), in_buf, n_bytes);
     }
 
-    *size = input_size;
-    *out = input;
+    *len = input_size;
+    *buf = input;
 
-    free(buf);
+    free(in_buf);
     return OK;
 }
 
@@ -58,38 +56,62 @@ void v_log_init() {
 }
 
 // Ideally this would be variadic and take a decorating string
-void v_log_errno(level lvl, int err) {
-    errno = 0;
-    char *err_s = strerror(err);
-
-    if (0 != errno) {
-        perror("error logging errno");
-        exit(EXIT_FAILURE);
-    }
-    v_log(lvl, err_s);
-}
-
-void v_vips_err(const char *fmt, ...) {
-
+void v_log_errno(int err, const char *fmt, ...) {
     // Build the specified message
     va_list args;
     va_start(args, fmt);
-    int n = vsprintf(NULL, fmt, args);
-    char *errmsg = malloc(sizeof(char) * n);
-    if (-1 == vsprintf(errmsg, fmt, args)) {
-        perror("v_vips_err");
+    char *errmsg = NULL;
+    if (-1 == vasprintf(&errmsg, fmt, args)) {
+        v_log(ERROR, "error handling this error (a): %s", fmt);
         exit(EXIT_FAILURE);
     }
     va_end(args);
 
-    // Now append the Vips error
-    const char *vips_err_buf = vips_error_buffer();
-    n = sprintf(NULL, "%s: %s", errmsg, vips_err_buf);
-    char *errmsg2 = malloc(sizeof(char) * n);
-    n = sprintf(errmsg2, "%s: %s", errmsg, vips_error_buffer());
+    // Get the system error message
+    errno = 0;
+    char *err_s = strerror(err);
+    if (0 != errno) {
+        perror("error logging errno");
+        exit(EXIT_FAILURE);
+    }
 
+    // Now build the final error message
+    char *errmsg2 = NULL;
+    if (-1 == asprintf(&errmsg2, "%s: %s", errmsg, err_s)) {
+        v_log(ERROR, "error handling this error (b): %s", errmsg);
+        exit(EXIT_FAILURE);
+    }
+
+    // Log the message
     v_log(ERROR, errmsg2);
 
+    // Cleanup
+    free(errmsg);
+    free(errmsg2);
+}
+
+void v_vips_err(const char *fmt, ...) {
+    // Build the specified message
+    va_list args;
+    va_start(args, fmt);
+    char *errmsg = NULL;
+    if (-1 == vasprintf(&errmsg, fmt, args)) {
+        v_log(ERROR, "error handling this error (a): %s", fmt);
+        exit(EXIT_FAILURE);
+    }
+    va_end(args);
+
+    // Now build the final error message
+    char *errmsg2 = NULL;
+    if (-1 == asprintf(&errmsg2, "%s: %s", errmsg, vips_error_buffer())) {
+        v_log(ERROR, "error handling this error (b): %s", errmsg);
+        exit(EXIT_FAILURE);
+    }
+
+    // Log the message
+    v_log(ERROR, errmsg2);
+
+    // Cleanup
     free(errmsg);
     free(errmsg2);
 }

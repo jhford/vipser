@@ -5,6 +5,59 @@
 #include "sniffing.h"
 #include "vips_glue.h"
 
+RESULT init_vips(char* argv0) {
+    if (VIPS_INIT(argv0)) {
+        v_vips_err("initialising vips");
+        return FAIL;
+    }
+    return OK;
+}
+
+RESULT read_input(int fd, void **buf, size_t *len, format_t *format) {
+    // Read the full input into memory
+    if (OK != read_all(fd, len, buf)) {
+        v_log(ERROR, "error while reading input");
+        return FAIL;
+    }
+
+    // Determine the type of input buffer
+    if (OK != determine_buffer_type(*len, *buf, format)) {
+        v_log(ERROR, "error determining buffer type");
+        /*int *x = NULL;
+        *x = 1;*/
+        return FAIL;
+    }
+
+    // Only load known image types
+    if (UNK == *format) {
+        char* x = (char*)buf;
+        if (*len > 5) {
+            v_log(ERROR, "unsupported image type [0x%x 0x%x 0x%x 0x%x...]", x[0], x[1], x[2], x[3]);
+        } else if (*len == 4) {
+            v_log(ERROR, "unsupported image type [0x%x 0x%x 0x%x 0x%x]", x[0], x[1], x[2], x[3]);
+        } else {
+            // Likely not an image
+            v_log(ERROR, "unsupported image type, input less than 4 bytes");
+        }
+        return FAIL;
+    }
+
+    return OK;
+}
+
+RESULT import_image(void *buf, size_t n, bool_t seq, VipsImage **out) {
+    if (seq) {
+        *out = vips_image_new_from_buffer(buf, n, "", "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+    } else {
+        *out = vips_image_new_from_buffer(buf, n, "", NULL);
+    }
+    if (*out == NULL) {
+        v_vips_err("error creating VipsImage from buffer");
+        return FAIL;
+    }
+    return OK;
+}
+
 RESULT rotate_image(VipsImage *in, VipsImage **out, int deg) {
     v_log(INFO, "rotate %3d degree", deg);
     VipsAngle angle;
@@ -181,7 +234,7 @@ RESULT resize_image(VipsImage *in, VipsImage **out, int newHeight, int newWidth,
 RESULT export_image(VipsImage *in, void **out, size_t *n, format_t format, int quality) {
     v_log(INFO, "exporting to %s with quality %d", get_format_name(format), quality);
 
-    int vips_result = 0;
+    int vips_result = 1;
     switch (format) {
     case JPEG:
         vips_result = vips_jpegsave_buffer(in, out, n, "Q", quality, NULL);
@@ -206,13 +259,14 @@ RESULT export_image(VipsImage *in, void **out, size_t *n, format_t format, int q
         return FAIL;
     }
 
-    // int width = vips_image_get_width(in);
-    // int height = vips_image_get_height(in);
-    int height = 0;
-    int width = 0;
+    int width = vips_image_get_width(in);
+    int height = vips_image_get_height(in);
+    //int height = 0;
+    //int width = 0;
 
     if (vips_result) {
-        v_vips_err("exporting to %d, %d %s", width, height, get_format_name(format));
+        v_vips_err("error exporting to %d, %d %s", width, height, get_format_name(format));
+        return FAIL;
     }
     return OK;
 }

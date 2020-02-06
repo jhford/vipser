@@ -357,3 +357,86 @@ RESULT run_command(VipsImage **in, format_t *format, int *quality, char *cmd) {
 
     return outcome;
 }
+
+// Argv[] needs to have 'something' at index 0 to account for this
+// function being designed to consume an argv as given by the system
+RESULT run_commands(int argc, char** argv,
+                    size_t inLen, void *inBuf,
+                    size_t *outLen, void **outBuf,
+                    format_t *format, int *quality){
+
+    // VipsImage that's being processed
+    VipsImage* image;
+
+    // We need to track if the commands failed so that we can skip
+    // exporting the image
+    int outcome = OK;
+
+    // Import the image
+    if (OK != import_image(inBuf, inLen, V_FALSE, &image)) {
+        v_log(ERROR, "importing image");
+        return FAIL;
+    }
+    v_log(INFO, "image imported");
+
+    for (int i = 1; i < argc; i++) {
+        v_log(INFO, "initiating command %s", argv[i]);
+
+        if (OK != run_command(&image, format, quality, argv[i])) {
+            v_log(ERROR, "error running command: %s", argv[i]);
+            outcome = FAIL;
+            break;
+        }
+    }
+
+    // If a command failed, release the VipsImage already
+    if (OK != outcome) {
+        g_object_unref(image);
+        return FAIL;
+    }
+
+    // Export the image
+    if (OK != export_image(image, outBuf, outLen, *format, *quality)) {
+        v_log(ERROR, "exporting image");
+        return FAIL;
+    }
+
+    g_object_unref(image);
+
+    return OK;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
