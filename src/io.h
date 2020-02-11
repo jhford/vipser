@@ -1,5 +1,9 @@
+
 #ifndef VIPSER_IO_H
 #define VIPSER_IO_H
+
+// This enables the GNU extension needed to use [v]asprintf
+#define _GNU_SOURCE
 
 #include <stddef.h>
 

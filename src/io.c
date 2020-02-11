@@ -1,3 +1,4 @@
+
 #include "io.h"
 #include "types.h"
 #include <stdarg.h>
@@ -15,7 +16,7 @@ RESULT read_all(int input_fd, Buffer *output) {
     char *read_buf = NULL;
 
     // Allocate reading buffer
-    read_buf = malloc(BUFFER_SIZE * sizeof(uint8_t));
+    read_buf = malloc(BUFFER_SIZE * sizeof(u_int8_t));
     // TODO check that this was allocated
     if (read_buf == NULL) {
         v_log(ERROR, "failed to allocate input read buffer");

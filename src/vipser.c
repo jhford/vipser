@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     BufferClear(&output);
 
     // Miscellaneous variables
-    size_t bytes_written = 0;
+    ssize_t bytes_written = 0;
 
     // Initialise logging
     v_log_init();
