@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <vips/vips.h>
 
+#include "sandbox.h"
 #include "commands.h"
 #include "io.h"
 #include "sniffing.h"
@@ -84,6 +85,13 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     v_log(DEBUG, "vips initialised");
+
+    // Initialise the sandbox now that all the file descriptors
+    // which are expected are opened
+    if (init_sandbox()) {
+        v_log(ERROR, "error sandboxing process");
+        exit(EXIT_FAILURE);
+    }
 
     // Read all the input from the input file
     if (read_input(input_fd, &input, &format)) {

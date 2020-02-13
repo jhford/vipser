@@ -12,13 +12,13 @@ set(VIPSER_SOURCES
         src/sniffing.c
         src/vips_glue.c
         src/commands.c
-)
+        src/sandbox.c src/sandbox.h)
 
 set(SNIFFER_SOURCES
         src/sniffer.c
         src/sniffing.c
         src/io.c
-)
+        src/sandbox.c src/sandbox.h)
 
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(VIPS REQUIRED vips)

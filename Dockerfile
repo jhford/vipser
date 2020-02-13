@@ -9,13 +9,18 @@ ARG DNF=dnf
 ARG PREFIX=/usr/local
 ARG DNF=dnf
 ARG BUILD_TYPE=Release
+#ARG CC=clang
+#ARG CXX=clang++
+ARG CC=gcc
+ARG CXX=g++
 
 # OS provided build dependencies
 # TODO: Figure out why there's a duplicate symbol breaking
 # the compilation when orc-devel is installed at build
 RUN sudo "$DNF" install -y \
     {expat,glib2,libpng,libtiff,libjpeg-turbo,libexif,fftw,file}-devel \
-    automake libtool diffutils file-libs file cmake make gcc gcc-c++
+    automake libtool diffutils file-libs file cmake make \
+    clang clang gcc gcc-c++
 
 # Control the build and install prefix for the dependencies
 # and ensure that they get
@@ -34,7 +39,10 @@ RUN J=$(nproc) ./build-deps.sh
 COPY . .
 
 # Create the build system
-RUN cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" ..
+RUN cmake .. \
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+    -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_CC_COMPILER="$CC"
 
 # Build it!
 RUN make "-j$(nproc)"
@@ -44,8 +52,6 @@ FROM $BASE
 ARG DNF=dnf
 ARG PREFIX=/usr/local
 COPY --from=build "$PREFIX" "$PREFIX"
-RUN ldconfig
 RUN sudo "$DNF" install -y \
     {expat,glib2,libpng,libtiff,libjpeg-turbo,libexif,orc,fftw,file-libs}
-
-WORKDIR build
+RUN ldconfig
